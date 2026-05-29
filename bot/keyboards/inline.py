@@ -215,6 +215,13 @@ def admin_back_keyboard(lang: str) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def back_to_main_keyboard(lang: str) -> InlineKeyboardMarkup:
+    """Back button for regular (non-admin) user pages — returns to main menu."""
+    builder = InlineKeyboardBuilder()
+    builder.button(text=_("back_btn", lang), callback_data="goto:main")
+    return builder.as_markup()
+
+
 def admin_order_keyboard(order_id: int, lang: str) -> InlineKeyboardMarkup:
     statuses = ["paid", "preparing", "ready", "on_the_way", "completed", "cancelled"]
     status_labels = {

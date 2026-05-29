@@ -3,7 +3,8 @@
 import logging
 from datetime import datetime
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy import select, and_
@@ -38,14 +39,11 @@ async def cb_broadcast_start(callback: CallbackQuery, state: FSMContext, lang: s
         await callback.answer()
         return
 
-    from aiogram.utils.keyboard import InlineKeyboardBuilder
     builder = InlineKeyboardBuilder()
     builder.button(text=_("broadcast_text_only_btn", lang), callback_data="bcast_type:text")
     builder.button(text=_("broadcast_with_photo_btn", lang), callback_data="bcast_type:photo")
     builder.button(text=_("broadcast_with_btn_btn", lang), callback_data="bcast_type:button")
-    builder.row(*[__import__("aiogram.types", fromlist=["InlineKeyboardButton"]).InlineKeyboardButton(
-        text=_("back_to_admin", lang), callback_data="admin:main"
-    )])
+    builder.row(InlineKeyboardButton(text=_("back_to_admin", lang), callback_data="admin:main"))
     builder.adjust(1)
 
     await state.set_state(BroadcastStates.choose_type)

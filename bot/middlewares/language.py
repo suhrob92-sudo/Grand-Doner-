@@ -31,8 +31,13 @@ class LanguageMiddleware(BaseMiddleware):
                     db_user = result.scalar_one_or_none()
                     if db_user:
                         lang = db_user.language
-                        data["db_user"] = db_user
+                    # Always inject db_user (None for new/unknown users) so
+                    # every handler can safely declare db_user: User | None = None
+                    data["db_user"] = db_user
             except Exception as exc:
                 logger.warning("LanguageMiddleware DB error: %s", exc)
+                data["db_user"] = None
+        else:
+            data["db_user"] = None
         data["lang"] = lang
         return await handler(event, data)

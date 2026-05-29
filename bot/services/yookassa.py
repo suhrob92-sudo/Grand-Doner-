@@ -1,18 +1,26 @@
-"""YooKassa payment service — create invoices and process webhooks."""
+"""YooKassa payment service — create invoices and process webhooks.
+
+The SDK is imported lazily so the bot starts correctly even when
+YOOKASSA_SHOP_ID / YOOKASSA_SECRET_KEY are not yet configured.
+"""
 
 import logging
 import uuid
 from typing import Optional
 
-from yookassa import Configuration, Payment
-from yookassa.domain.models import Currency
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-# Configure SDK once at import time
-Configuration.account_id = settings.YOOKASSA_SHOP_ID
-Configuration.secret_key = settings.YOOKASSA_SECRET_KEY
+try:
+    from yookassa import Configuration, Payment
+    from yookassa.domain.models import Currency
+    Configuration.account_id = settings.YOOKASSA_SHOP_ID
+    Configuration.secret_key = settings.YOOKASSA_SECRET_KEY
+    _YOOKASSA_AVAILABLE = True
+except ImportError:
+    logger.warning("yookassa SDK not installed — payment features disabled")
+    _YOOKASSA_AVAILABLE = False
 
 
 async def create_payment(
@@ -24,6 +32,8 @@ async def create_payment(
     customer_phone: Optional[str] = None,
 ) -> dict:
     """Create a YooKassa payment and return {payment_id, confirmation_url}."""
+    if not _YOOKASSA_AVAILABLE:
+        raise RuntimeError("yookassa SDK is not installed")
     try:
         idempotence_key = str(uuid.uuid4())
         amount_rub = str(amount_kopecks / 100)
@@ -65,6 +75,8 @@ async def create_payment(
 
 async def cancel_payment(payment_id: str) -> bool:
     """Cancel (refund) a payment by its YooKassa ID."""
+    if not _YOOKASSA_AVAILABLE:
+        return False
     try:
         idempotence_key = str(uuid.uuid4())
         payment = Payment.find_one(payment_id)

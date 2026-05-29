@@ -14,7 +14,7 @@ from models.user import User
 from utils.i18n import _
 from utils.helpers import format_datetime, stars
 from utils.decorators import handle_errors
-from keyboards.inline import review_comment_keyboard, admin_back_keyboard
+from keyboards.inline import review_comment_keyboard, back_to_main_keyboard
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ async def show_reviews(callback: CallbackQuery, lang: str) -> None:
     if not reviews:
         await callback.message.edit_text(
             _("no_reviews", lang),
-            reply_markup=admin_back_keyboard(lang),
+            reply_markup=back_to_main_keyboard(lang),
         )
         await callback.answer()
         return
@@ -62,7 +62,7 @@ async def show_reviews(callback: CallbackQuery, lang: str) -> None:
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=admin_back_keyboard(lang),
+        reply_markup=back_to_main_keyboard(lang),
     )
     await callback.answer()
 

@@ -12,7 +12,7 @@ from models.referral import Referral
 from utils.i18n import _
 from utils.helpers import format_datetime
 from utils.decorators import handle_errors
-from keyboards.inline import profile_keyboard, main_menu_inline, admin_back_keyboard
+from keyboards.inline import profile_keyboard, main_menu_inline, back_to_main_keyboard
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ async def show_order_history(callback: CallbackQuery, lang: str, db_user: User |
     if not orders:
         await callback.message.edit_text(
             _("no_orders_yet", lang),
-            reply_markup=admin_back_keyboard(lang),
+            reply_markup=back_to_main_keyboard(lang),
         )
         await callback.answer()
         return
@@ -108,7 +108,7 @@ async def show_order_history(callback: CallbackQuery, lang: str, db_user: User |
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=admin_back_keyboard(lang),
+        reply_markup=back_to_main_keyboard(lang),
     )
     await callback.answer()
 

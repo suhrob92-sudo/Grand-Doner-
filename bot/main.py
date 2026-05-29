@@ -116,6 +116,7 @@ def main() -> None:
 
     # Build aiohttp app for webhook
     app = web.Application()
+    app["bot"] = bot          # shared reference used by YooKassa webhook handler
     handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     handler.register(app, path=settings.WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)

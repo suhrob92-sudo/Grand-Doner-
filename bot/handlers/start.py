@@ -185,3 +185,15 @@ async def cb_main_referral(callback: CallbackQuery, lang: str, db_user: User | N
 async def cb_main_reviews(callback: CallbackQuery, lang: str, **kwargs) -> None:
     from handlers.reviews import show_reviews
     await show_reviews(callback, lang)
+
+
+@router.callback_query(F.data == "goto:main")
+@handle_errors
+async def cb_goto_main(callback: CallbackQuery, lang: str, **kwargs) -> None:
+    """Universal 'back to main menu' for regular user pages."""
+    from keyboards.inline import main_menu_inline
+    await callback.message.edit_text(
+        _("main_menu", lang),
+        reply_markup=main_menu_inline(lang),
+    )
+    await callback.answer()

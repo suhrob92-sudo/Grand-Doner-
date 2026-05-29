@@ -11,7 +11,7 @@ from models.bonus import BonusTransaction
 from utils.i18n import _
 from utils.helpers import format_datetime
 from utils.decorators import handle_errors
-from keyboards.inline import admin_back_keyboard
+from keyboards.inline import back_to_main_keyboard
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -66,6 +66,6 @@ async def cb_bonus_history(callback: CallbackQuery, lang: str, db_user: User | N
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=admin_back_keyboard(lang),
+        reply_markup=back_to_main_keyboard(lang),
     )
     await callback.answer()

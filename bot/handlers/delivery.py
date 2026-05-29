@@ -10,7 +10,7 @@ from utils.i18n import _
 from utils.helpers import calculate_distance_km, delivery_cost_from_distance
 from utils.decorators import handle_errors
 from keyboards.reply import location_keyboard, remove_keyboard
-from keyboards.inline import confirm_keyboard, main_menu_inline
+from keyboards.inline import confirm_keyboard, main_menu_inline, order_type_keyboard
 from config import settings
 
 router = Router()
@@ -121,6 +121,6 @@ async def cb_delivery_cancel(callback: CallbackQuery, state: FSMContext, lang: s
     await state.clear()
     await callback.message.edit_text(
         _("choose_order_type", lang),
-        reply_markup=__import__("keyboards.inline", fromlist=["order_type_keyboard"]).order_type_keyboard(lang),
+        reply_markup=order_type_keyboard(lang),
     )
     await callback.answer()

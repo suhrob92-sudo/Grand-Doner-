@@ -3,7 +3,8 @@
 import logging
 from datetime import datetime, timedelta
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from services.statistics import get_revenue_and_orders, get_top_products, get_top_customers
 from models.base import AsyncSessionLocal
 from utils.i18n import _
@@ -22,16 +23,13 @@ async def cb_admin_stats(callback: CallbackQuery, lang: str, **kwargs) -> None:
         await callback.answer()
         return
 
-    from aiogram.utils.keyboard import InlineKeyboardBuilder
     builder = InlineKeyboardBuilder()
     builder.button(text="📅 Сегодня", callback_data="stats_period:today")
     builder.button(text="📅 Неделя", callback_data="stats_period:week")
     builder.button(text="📅 Месяц", callback_data="stats_period:month")
     builder.button(text="🔥 Топ товаров", callback_data="stats_period:top_products")
     builder.button(text="🏆 Топ клиентов", callback_data="stats_period:top_customers")
-    builder.row(*[__import__("aiogram.types", fromlist=["InlineKeyboardButton"]).InlineKeyboardButton(
-        text=_("back_to_admin", lang), callback_data="admin:main"
-    )])
+    builder.row(InlineKeyboardButton(text=_("back_to_admin", lang), callback_data="admin:main"))
     builder.adjust(2)
 
     await callback.message.edit_text(_("stats_title", lang), reply_markup=builder.as_markup())

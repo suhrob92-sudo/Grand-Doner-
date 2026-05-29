@@ -10,7 +10,7 @@ from models.user import User
 from models.referral import Referral
 from utils.i18n import _
 from utils.decorators import handle_errors
-from keyboards.inline import admin_back_keyboard
+from keyboards.inline import back_to_main_keyboard
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ async def show_referral(callback: CallbackQuery, lang: str, db_user: User | None
 
     await callback.message.edit_text(
         f"{_('referral_title', lang)}\n\n{text}",
-        reply_markup=admin_back_keyboard(lang),
+        reply_markup=back_to_main_keyboard(lang),
     )
     await callback.answer()
 
