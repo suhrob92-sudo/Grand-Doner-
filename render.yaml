@@ -11,6 +11,10 @@ services:
     healthCheckPath: /health   # Render uses this to verify the service is up
 
     envVars:
+      # ── Python version — forces 3.11, avoids pydantic-core Rust build on 3.14
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+
       # ── Telegram ────────────────────────────────────────────────────────────
       - key: BOT_TOKEN
         sync: false            # set manually in Render dashboard
