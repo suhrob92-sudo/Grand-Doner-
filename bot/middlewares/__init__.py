@@ -1,0 +1,3 @@
+from middlewares.language import LanguageMiddleware
+from middlewares.throttling import ThrottlingMiddleware
+from middlewares.auth import AuthMiddleware
