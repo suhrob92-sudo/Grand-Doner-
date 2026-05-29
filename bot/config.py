@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     # YooKassa
     YOOKASSA_SHOP_ID: str = ""
     YOOKASSA_SECRET_KEY: str = ""
-    WEBHOOK_URL: str = "https://yourdomain.com"
+    WEBHOOK_URL: str = "https://yourdomain.onrender.com"
     WEBHOOK_PATH: str = "/webhook/bot"
-    WEBHOOK_PORT: int = 8080
+    WEBHOOK_PORT: int = 8080  # legacy — use PORT instead on Render
 
     # Yandex Taxi
     YANDEX_TAXI_API_KEY: str = ""
@@ -45,6 +45,9 @@ class Settings(BaseSettings):
 
     # Logging
     LOG_LEVEL: str = "INFO"
+
+    # Render — PORT is injected automatically by the platform
+    PORT: int = 8080
 
     @property
     def admin_ids_list(self) -> List[int]:

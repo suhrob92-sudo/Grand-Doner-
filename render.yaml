@@ -1,0 +1,87 @@
+services:
+  # ── Telegram bot (Web Service so Render assigns a public URL) ───────────────
+  - type: web
+    name: shaurma-bot
+    runtime: python
+    region: frankfurt          # closest to Russia / Central Asia
+    plan: free                 # upgrade to starter ($7/mo) for always-on
+    rootDir: bot
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /health   # Render uses this to verify the service is up
+
+    envVars:
+      # ── Telegram ────────────────────────────────────────────────────────────
+      - key: BOT_TOKEN
+        sync: false            # set manually in Render dashboard
+
+      - key: ADMIN_IDS
+        sync: false
+
+      - key: COURIER_IDS
+        value: ""
+
+      # ── Webhook — Render injects RENDER_EXTERNAL_URL automatically
+      # Set WEBHOOK_URL to  https://<your-service>.onrender.com  in the dashboard
+      - key: WEBHOOK_URL
+        sync: false
+
+      - key: WEBHOOK_PATH
+        value: /webhook/bot
+
+      # PORT is auto-injected by Render — do NOT set it manually
+      # settings.PORT reads it from the environment
+
+      # ── Database (use Render PostgreSQL or external Supabase/Neon) ──────────
+      - key: DATABASE_URL
+        sync: false            # e.g. postgresql+asyncpg://user:pass@host/db
+
+      # ── Redis (use Render Redis add-on or Upstash) ───────────────────────────
+      - key: REDIS_URL
+        sync: false            # e.g. redis://default:pass@host:port
+
+      # ── YooKassa ────────────────────────────────────────────────────────────
+      - key: YOOKASSA_SHOP_ID
+        sync: false
+
+      - key: YOOKASSA_SECRET_KEY
+        sync: false
+
+      # ── Yandex Taxi ─────────────────────────────────────────────────────────
+      - key: YANDEX_TAXI_API_KEY
+        sync: false
+
+      - key: YANDEX_TAXI_CLIENT_ID
+        sync: false
+
+      - key: YANDEX_TAXI_PARK_ID
+        sync: false
+
+      # ── Restaurant ──────────────────────────────────────────────────────────
+      - key: RESTAURANT_NAME
+        value: Shaurma House
+
+      - key: RESTAURANT_ADDRESS
+        value: "Москва, ул. Примерная, 1"
+
+      - key: RESTAURANT_LAT
+        value: "55.7558"
+
+      - key: RESTAURANT_LON
+        value: "37.6176"
+
+      - key: RESTAURANT_PHONE
+        value: "+7XXXXXXXXXX"
+
+      # ── Bonus system ─────────────────────────────────────────────────────────
+      - key: BONUS_RATE
+        value: "5"
+
+      - key: BONUS_EXPIRE_DAYS
+        value: "90"
+
+      - key: MAX_BONUS_PERCENT
+        value: "30"
+
+      - key: LOG_LEVEL
+        value: INFO

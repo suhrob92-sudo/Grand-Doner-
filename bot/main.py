@@ -1,7 +1,13 @@
-"""Application entry point — sets up bot, dispatcher, webhook and scheduler."""
+"""Application entry point — sets up bot, dispatcher, webhook and scheduler.
+
+Deployment: Render Web Service (free tier).
+UptimeRobot pings GET /health every 5 minutes to prevent the dyno sleeping.
+Render injects PORT automatically; we read it from settings.PORT.
+"""
 
 import asyncio
 import logging
+from datetime import datetime
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -114,11 +120,22 @@ def main() -> None:
     handler.register(app, path=settings.WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
 
-    # YooKassa webhook route handled separately
+    # YooKassa webhook route
     from handlers.payment import yookassa_webhook
     app.router.add_post("/webhook/yookassa", yookassa_webhook)
 
-    web.run_app(app, host="0.0.0.0", port=settings.WEBHOOK_PORT)
+    # ── Health check endpoint ──────────────────────────────────────────────────
+    # UptimeRobot pings this URL every 5 minutes so Render never sleeps.
+    async def health(request: web.Request) -> web.Response:
+        return web.json_response({"status": "ok", "ts": datetime.utcnow().isoformat()})
+
+    app.router.add_get("/health", health)
+    app.router.add_get("/", health)   # root also returns 200 for Render health-check
+
+    # Render sets PORT env var; fall back to WEBHOOK_PORT for local dev
+    port = settings.PORT
+    logger.info("Starting on port %s", port)
+    web.run_app(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":

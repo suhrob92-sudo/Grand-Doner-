@@ -2,6 +2,167 @@
 
 Production-ready Telegram bot for an Uzbek shawarma restaurant in Russia.
 
+---
+
+## 🚀 Deploy to Render + UptimeRobot (free 24/7)
+
+### Step 1 — Free services you need
+
+| Service | Free tier | Link |
+|---------|-----------|------|
+| **Render** | Web service (sleeps after 15 min on free) | render.com |
+| **UptimeRobot** | Pings every 5 min → keeps Render awake | uptimerobot.com |
+| **Neon** (PostgreSQL) | 512 MB free forever | neon.tech |
+| **Upstash** (Redis) | 10K req/day free | upstash.com |
+
+---
+
+### Step 2 — PostgreSQL on Neon
+
+1. Go to [neon.tech](https://neon.tech) → New project
+2. Copy the **connection string** — it looks like:
+   ```
+   postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb
+   ```
+3. Change the scheme to `asyncpg`:
+   ```
+   postgresql+asyncpg://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+   ```
+
+---
+
+### Step 3 — Redis on Upstash
+
+1. Go to [upstash.com](https://upstash.com) → Create database → **Redis**
+2. Region: **EU (Frankfurt)** — closest to Russia
+3. Copy the **Redis URL** (starts with `rediss://`)
+
+---
+
+### Step 4 — Deploy on Render
+
+1. Push this repo to GitHub (already done ✅)
+2. Go to [render.com](https://render.com) → **New → Web Service**
+3. Connect your GitHub repo
+4. Settings:
+   ```
+   Root Directory : bot
+   Build Command  : pip install -r requirements.txt
+   Start Command  : python main.py
+   ```
+5. Under **Environment Variables** add:
+
+   | Key | Value |
+   |-----|-------|
+   | `BOT_TOKEN` | Your BotFather token |
+   | `ADMIN_IDS` | Your Telegram ID (e.g. `123456789`) |
+   | `DATABASE_URL` | Neon connection string (asyncpg) |
+   | `REDIS_URL` | Upstash Redis URL |
+   | `WEBHOOK_URL` | Leave **blank for now** (fill after deploy) |
+   | `YOOKASSA_SHOP_ID` | YooKassa shop ID |
+   | `YOOKASSA_SECRET_KEY` | YooKassa secret |
+   | `RESTAURANT_NAME` | Shaurma House |
+   | `RESTAURANT_ADDRESS` | Your address |
+   | `RESTAURANT_LAT` | Your latitude |
+   | `RESTAURANT_LON` | Your longitude |
+   | `RESTAURANT_PHONE` | +7XXXXXXXXXX |
+
+6. Click **Deploy** → wait ~2 min
+
+7. After deploy, copy your Render URL:
+   ```
+   https://shaurma-bot.onrender.com
+   ```
+
+8. Go back to **Environment → Edit** → set:
+   ```
+   WEBHOOK_URL = https://shaurma-bot.onrender.com
+   ```
+   → **Save** (triggers redeploy)
+
+---
+
+### Step 5 — Run DB migrations (one time)
+
+In Render dashboard → your service → **Shell**:
+```bash
+python -c "import asyncio; from models.base import init_db; asyncio.run(init_db())"
+```
+
+Seed initial categories:
+```bash
+python -c "
+import asyncio
+from models.base import AsyncSessionLocal
+from models.category import Category
+
+async def seed():
+    async with AsyncSessionLocal() as s:
+        s.add_all([
+            Category(name_ru='Шаурма',       name_uz='Shaurma',       emoji='🥙', sort_order=1),
+            Category(name_ru='Бургеры',      name_uz='Burgerlar',     emoji='🍔', sort_order=2),
+            Category(name_ru='Картошка фри', name_uz='Kartoshka fri', emoji='🍟', sort_order=3),
+            Category(name_ru='Напитки',      name_uz='Ichimliklar',   emoji='🥤', sort_order=4),
+            Category(name_ru='Комбо-сеты',   name_uz='Kombo-setlar',  emoji='🍱', sort_order=5),
+            Category(name_ru='Салаты',       name_uz='Salatlar',      emoji='🥗', sort_order=6),
+        ])
+        await s.commit()
+
+asyncio.run(seed())
+"
+```
+
+---
+
+### Step 6 — Keep alive with UptimeRobot
+
+Render free tier sleeps after **15 minutes** of no traffic.
+UptimeRobot pings `/health` every **5 minutes** — bot never sleeps.
+
+1. Go to [uptimerobot.com](https://uptimerobot.com) → **Add New Monitor**
+2. Settings:
+   ```
+   Monitor Type : HTTP(s)
+   Friendly Name: Shaurma Bot
+   URL          : https://shaurma-bot.onrender.com/health
+   Monitoring Interval: 5 minutes
+   ```
+3. Click **Create Monitor** ✅
+
+The `/health` endpoint returns:
+```json
+{"status": "ok", "ts": "2025-01-15T10:30:00"}
+```
+
+---
+
+### Step 7 — Verify everything works
+
+```
+https://shaurma-bot.onrender.com/health     → {"status":"ok","ts":"..."}
+https://shaurma-bot.onrender.com/           → {"status":"ok","ts":"..."}
+```
+
+Then open Telegram → find your bot → send `/start` 🎉
+
+---
+
+### YooKassa webhook (important!)
+
+In your YooKassa dashboard set the webhook URL to:
+```
+https://shaurma-bot.onrender.com/webhook/yookassa
+```
+
+---
+
+### Upgrade to always-on (optional)
+
+Render **Starter plan ($7/month)** removes the sleep entirely.
+When you're ready: Render dashboard → your service → **Upgrade plan**.
+
+---
+
 ## Tech Stack
 
 | Component | Library |
