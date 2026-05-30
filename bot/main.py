@@ -45,17 +45,28 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+_scheduler = None
+
+
 async def on_startup(bot: Bot) -> None:
     """Register webhook and initialize DB on startup."""
+    global _scheduler
     await init_db()
     webhook_url = f"{settings.WEBHOOK_URL}{settings.WEBHOOK_PATH}"
     await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
     logger.info("Webhook set to %s", webhook_url)
+    # Start scheduler inside async context so event loop is already running
+    _scheduler = setup_scheduler(bot)
+    _scheduler.start()
+    logger.info("Scheduler started")
 
 
 async def on_shutdown(bot: Bot) -> None:
     """Delete webhook on shutdown."""
+    global _scheduler
     await bot.delete_webhook()
+    if _scheduler and _scheduler.running:
+        _scheduler.shutdown(wait=False)
     logger.info("Webhook deleted")
 
 
@@ -109,10 +120,6 @@ def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = create_dispatcher()
-
-    # Start APScheduler
-    scheduler = setup_scheduler(bot)
-    scheduler.start()
 
     # Build aiohttp app for webhook
     app = web.Application()
