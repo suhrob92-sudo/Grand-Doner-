@@ -19,8 +19,11 @@ texts: dict = {
     "orders_btn": "📋 Buyurtmalarim",
     "referral_btn": "👥 Referral dastur",
     "reviews_btn": "⭐ Sharhlar",
+    "promos_btn": "🎁 Aksiyalar",
+    "contact_btn": "📞 Kontakt",
     "help_btn": "❓ Yordam",
     "language_btn": "🌐 Til",
+    "contact_info": "📞 <b>Kontakt</b>\n\n🏠 {name}\n📍 {address}\n📞 {phone}\n\n🕐 Ish vaqti: {hours}",
 
     # Catalog
     "choose_category": "🍽 <b>Kategoriyani tanlang:</b>",

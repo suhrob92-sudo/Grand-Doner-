@@ -19,13 +19,12 @@ def language_inline() -> InlineKeyboardMarkup:
 
 def main_menu_inline(lang: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text=_("catalog_btn", lang), callback_data="main:catalog")
-    builder.button(text=_("cart_btn", lang), callback_data="main:cart")
-    builder.button(text=_("orders_btn", lang), callback_data="main:orders")
-    builder.button(text=_("profile_btn", lang), callback_data="main:profile")
-    builder.button(text=_("referral_btn", lang), callback_data="main:referral")
-    builder.button(text=_("reviews_btn", lang), callback_data="main:reviews")
-    builder.adjust(2)
+    builder.button(text=_("catalog_btn", lang),  callback_data="main:catalog")
+    builder.button(text=_("cart_btn", lang),     callback_data="main:cart")
+    builder.button(text=_("profile_btn", lang),  callback_data="main:profile")
+    builder.button(text=_("promos_btn", lang),   callback_data="main:promos")
+    builder.button(text=_("contact_btn", lang),  callback_data="main:contact")
+    builder.adjust(2, 2, 1)
     return builder.as_markup()
 
 
@@ -40,7 +39,7 @@ def categories_keyboard(categories: list, lang: str) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def products_keyboard(products: list, lang: str, page: int = 0) -> InlineKeyboardMarkup:
+def products_keyboard(products: list, lang: str, page: int = 0, cat_id: int = 0) -> InlineKeyboardMarkup:
     """Paginated product list within a category."""
     PAGE_SIZE = 8
     start = page * PAGE_SIZE
@@ -52,12 +51,12 @@ def products_keyboard(products: list, lang: str, page: int = 0) -> InlineKeyboar
         label = f"{badge} {name} — {p.price // 100} ₽".strip()
         builder.button(text=label, callback_data=f"prod:{p.id}")
     builder.adjust(1)
-    # Pagination row
+    # Pagination row — encode cat_id so handler can reload products
     nav = []
     if page > 0:
-        nav.append(InlineKeyboardButton(text="◀", callback_data=f"prod_page:{page - 1}"))
+        nav.append(InlineKeyboardButton(text="◀", callback_data=f"prod_page:{cat_id}:{page - 1}"))
     if start + PAGE_SIZE < len(products):
-        nav.append(InlineKeyboardButton(text="▶", callback_data=f"prod_page:{page + 1}"))
+        nav.append(InlineKeyboardButton(text="▶", callback_data=f"prod_page:{cat_id}:{page + 1}"))
     if nav:
         builder.row(*nav)
     builder.row(InlineKeyboardButton(text="◀ Назад / Orqaga", callback_data="main:catalog"))

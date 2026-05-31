@@ -19,8 +19,11 @@ texts: dict = {
     "orders_btn": "📋 Мои заказы",
     "referral_btn": "👥 Реферальная программа",
     "reviews_btn": "⭐ Отзывы",
+    "promos_btn": "🎁 Акции",
+    "contact_btn": "📞 Контакты",
     "help_btn": "❓ Помощь",
     "language_btn": "🌐 Язык",
+    "contact_info": "📞 <b>Контакты</b>\n\n🏠 {name}\n📍 {address}\n📞 {phone}\n\n🕐 Режим работы: {hours}",
 
     # Catalog
     "choose_category": "🍽 <b>Выберите категорию:</b>",

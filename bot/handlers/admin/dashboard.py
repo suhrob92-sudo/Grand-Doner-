@@ -24,10 +24,15 @@ def is_admin(telegram_id: int) -> bool:
 @handle_errors
 async def cmd_admin(message: Message, lang: str, **kwargs) -> None:
     if not is_admin(message.from_user.id):
+        await message.answer("❌ Доступ запрещён / Ruxsat yo'q")
         return
-    async with AsyncSessionLocal() as session:
-        stats = await get_dashboard_stats(session)
-    text = _("admin_dashboard", lang, **stats)
+    try:
+        async with AsyncSessionLocal() as session:
+            stats = await get_dashboard_stats(session)
+        text = _("admin_dashboard", lang, **stats)
+    except Exception as exc:
+        logger.error("Dashboard stats error: %s", exc)
+        text = "📊 Статистика временно недоступна."
     await message.answer(
         f"{_('admin_welcome', lang)}\n\n{text}",
         reply_markup=admin_main_keyboard(lang),

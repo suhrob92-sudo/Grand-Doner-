@@ -17,6 +17,7 @@ from redis.asyncio import Redis
 
 from config import settings
 from models.base import init_db
+from utils.seeder import seed_data
 from middlewares.language import LanguageMiddleware
 from middlewares.throttling import ThrottlingMiddleware
 from middlewares.auth import AuthMiddleware
@@ -118,10 +119,11 @@ async def main_async() -> None:
     except Exception as exc:
         logger.warning("delete_webhook failed: %s", exc)
 
-    # Initialize DB
+    # Initialize DB and seed default data
     try:
         await init_db()
         logger.info("Database initialized")
+        await seed_data()
     except Exception as exc:
         logger.error("Database init failed: %s", exc)
 

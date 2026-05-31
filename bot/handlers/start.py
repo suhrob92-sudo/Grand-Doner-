@@ -29,23 +29,17 @@ class RegistrationStates(StatesGroup):
 @router.message(CommandStart())
 @handle_errors
 async def cmd_start(message: Message, state: FSMContext, lang: str, db_user: User | None = None) -> None:
-    """Entry point — show language selection if user is new, main menu if returning."""
+    """Entry point — always show language selection first."""
     # Parse referral code from start payload
     args = message.text.split(maxsplit=1)
     referral_code = None
     if len(args) > 1 and args[1].startswith("ref_"):
-        referral_code = args[1][4:]  # strip "ref_"
+        referral_code = args[1][4:]
         await state.update_data(referral_code=referral_code)
 
+    # Always show language picker — user can confirm or change language
     if db_user:
-        # Returning user — go straight to main menu
-        await message.answer(
-            _("main_menu", db_user.language),
-            reply_markup=main_menu_inline(db_user.language),
-        )
-        return
-
-    # New user — show language picker
+        await state.update_data(is_returning=True)
     await state.set_state(RegistrationStates.waiting_language)
     await message.answer(
         _("choose_language", "ru"),
@@ -55,9 +49,31 @@ async def cmd_start(message: Message, state: FSMContext, lang: str, db_user: Use
 
 @router.callback_query(F.data.startswith("lang:"), RegistrationStates.waiting_language)
 @handle_errors
-async def cb_language_select(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
-    """Handle language selection during registration."""
+async def cb_language_select(callback: CallbackQuery, state: FSMContext, lang: str, db_user: User | None = None) -> None:
+    """Handle language selection — for new users start registration, for returning show main menu."""
     chosen_lang = callback.data.split(":")[1]
+    data = await state.get_data()
+    is_returning = data.get("is_returning", False)
+
+    if is_returning and db_user:
+        # Update language in DB for returning user
+        from sqlalchemy import select as sa_select
+        from models.base import AsyncSessionLocal
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import update
+            await session.execute(
+                update(User).where(User.telegram_id == callback.from_user.id).values(language=chosen_lang)
+            )
+            await session.commit()
+        await state.clear()
+        await callback.message.edit_text(
+            _("main_menu", chosen_lang),
+            reply_markup=main_menu_inline(chosen_lang),
+        )
+        await callback.answer()
+        return
+
+    # New user — continue registration
     await state.update_data(language=chosen_lang)
     await callback.message.edit_text(
         _("welcome", chosen_lang, name=settings.RESTAURANT_NAME)
@@ -185,6 +201,63 @@ async def cb_main_referral(callback: CallbackQuery, lang: str, db_user: User | N
 async def cb_main_reviews(callback: CallbackQuery, lang: str, **kwargs) -> None:
     from handlers.reviews import show_reviews
     await show_reviews(callback, lang)
+
+
+@router.callback_query(F.data == "main:contact")
+@handle_errors
+async def cb_main_contact(callback: CallbackQuery, lang: str, **kwargs) -> None:
+    from models.base import AsyncSessionLocal
+    from models.settings import BotSetting
+    from sqlalchemy import select as sa_select
+    async with AsyncSessionLocal() as session:
+        h = (await session.execute(
+            sa_select(BotSetting).where(BotSetting.key == "working_hours")
+        )).scalar_one_or_none()
+    hours = h.value if h else "10:00–22:00"
+    text = _(
+        "contact_info", lang,
+        name=settings.RESTAURANT_NAME,
+        address=settings.RESTAURANT_ADDRESS,
+        phone=settings.RESTAURANT_PHONE,
+        hours=hours,
+    )
+    await callback.message.edit_text(text, reply_markup=back_to_main_keyboard(lang))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "main:promos")
+@handle_errors
+async def cb_main_promos(callback: CallbackQuery, lang: str, **kwargs) -> None:
+    from models.base import AsyncSessionLocal
+    from models.promo import PromoCode
+    from sqlalchemy import select as sa_select
+    from datetime import datetime
+    async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
+        result = await session.execute(
+            sa_select(PromoCode)
+            .where(PromoCode.is_active == True)
+            .where(PromoCode.valid_to >= now)
+            .where(PromoCode.is_birthday == False)
+            .limit(10)
+        )
+        promos = result.scalars().all()
+
+    if not promos:
+        no_promo = "🎁 Hozirda aksiyalar yo'q." if lang == "uz" else "🎁 Активных акций пока нет."
+        await callback.message.edit_text(no_promo, reply_markup=back_to_main_keyboard(lang))
+        await callback.answer()
+        return
+
+    lines = ["🎁 <b>Aksiyalar / Акции:</b>\n"]
+    for p in promos:
+        if p.discount_type == "percent":
+            disc = f"{p.discount_value}%"
+        else:
+            disc = f"{p.discount_value // 100} ₽"
+        lines.append(f"🏷 <code>{p.code}</code> — {disc}")
+    await callback.message.edit_text("\n".join(lines), reply_markup=back_to_main_keyboard(lang))
+    await callback.answer()
 
 
 @router.callback_query(F.data == "goto:main")

@@ -81,7 +81,7 @@ async def cb_category(callback: CallbackQuery, lang: str, **kwargs) -> None:
 
     await callback.message.edit_text(
         _("choose_product", lang, category=cat_name),
-        reply_markup=products_keyboard(products, lang, page=0),
+        reply_markup=products_keyboard(products, lang, page=0, cat_id=cat_id),
     )
     await callback.answer()
 
@@ -89,12 +89,28 @@ async def cb_category(callback: CallbackQuery, lang: str, **kwargs) -> None:
 @router.callback_query(F.data.startswith("prod_page:"))
 @handle_errors
 async def cb_product_page(callback: CallbackQuery, lang: str, **kwargs) -> None:
-    """Paginate through product list — we need category context from message state."""
-    page = int(callback.data.split(":")[1])
-    # The category ID is not encoded in the page callback; re-read from the keyboard's first product
-    # Instead, store category in FSM or re-fetch. Simple approach: cache it.
-    # For simplicity, we just answer and let the user re-select. A real impl would store cat_id in state.
-    await callback.answer("Используйте кнопки категорий")
+    """Paginate through product list — cat_id encoded in callback data."""
+    parts = callback.data.split(":")
+    cat_id = int(parts[1])
+    page = int(parts[2])
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Product)
+            .where(Product.category_id == cat_id)
+            .order_by(Product.sort_order)
+        )
+        products = result.scalars().all()
+        cat = (await session.execute(
+            select(Category).where(Category.id == cat_id)
+        )).scalar_one_or_none()
+
+    cat_name = cat.name_uz if lang == "uz" else cat.name_ru if cat else ""
+    await callback.message.edit_text(
+        _("choose_product", lang, category=cat_name),
+        reply_markup=products_keyboard(products, lang, page=page, cat_id=cat_id),
+    )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("prod:"))
