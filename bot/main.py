@@ -59,8 +59,12 @@ async def on_startup(bot: Bot) -> None:
 
     try:
         webhook_url = f"{settings.WEBHOOK_URL}{settings.WEBHOOK_PATH}"
-        await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
-        logger.info("Webhook set to %s", webhook_url)
+        # Delete first to reset Telegram's retry state, then re-register
+        await bot.delete_webhook(drop_pending_updates=True)
+        await bot.set_webhook(url=webhook_url)
+        info = await bot.get_webhook_info()
+        logger.info("Webhook set to %s (pending: %s, last_error: %s)",
+                    info.url, info.pending_update_count, info.last_error_message)
     except Exception as exc:
         logger.error("set_webhook failed: %s", exc)
 
