@@ -17,7 +17,11 @@ class ThrottlingMiddleware(BaseMiddleware):
 
     def _get_redis(self) -> Redis:
         if self._redis is None:
-            self._redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._redis = Redis.from_url(
+                settings.REDIS_URL,
+                decode_responses=True,
+                ssl_cert_reqs=None,
+            )
         return self._redis
 
     async def __call__(

@@ -72,7 +72,11 @@ async def on_shutdown(bot: Bot) -> None:
 
 def create_dispatcher() -> Dispatcher:
     """Build and configure the Dispatcher with all middlewares and routers."""
-    redis = Redis.from_url(settings.REDIS_URL, decode_responses=False)
+    redis = Redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=False,
+        ssl_cert_reqs=None,  # allows rediss:// (Upstash TLS) without cert verification
+    )
     storage = RedisStorage(redis=redis)
     dp = Dispatcher(storage=storage)
 
