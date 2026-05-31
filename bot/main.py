@@ -51,14 +51,25 @@ _scheduler = None
 async def on_startup(bot: Bot) -> None:
     """Register webhook and initialize DB on startup."""
     global _scheduler
-    await init_db()
-    webhook_url = f"{settings.WEBHOOK_URL}{settings.WEBHOOK_PATH}"
-    await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
-    logger.info("Webhook set to %s", webhook_url)
-    # Start scheduler inside async context so event loop is already running
-    _scheduler = setup_scheduler(bot)
-    _scheduler.start()
-    logger.info("Scheduler started")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as exc:
+        logger.error("Database init failed: %s", exc)
+
+    try:
+        webhook_url = f"{settings.WEBHOOK_URL}{settings.WEBHOOK_PATH}"
+        await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+        logger.info("Webhook set to %s", webhook_url)
+    except Exception as exc:
+        logger.error("set_webhook failed: %s", exc)
+
+    try:
+        _scheduler = setup_scheduler(bot)
+        _scheduler.start()
+        logger.info("Scheduler started")
+    except Exception as exc:
+        logger.error("Scheduler start failed: %s", exc)
 
 
 async def on_shutdown(bot: Bot) -> None:

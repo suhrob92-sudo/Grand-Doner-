@@ -5,7 +5,12 @@ from sqlalchemy.orm import DeclarativeBase
 
 from config import settings
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False, pool_pre_ping=True)
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    connect_args={"ssl": "require"},  # Neon requires SSL
+)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
