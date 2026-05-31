@@ -40,6 +40,6 @@ class User(Base):
     last_active: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    orders: Mapped[list["Order"]] = relationship("Order", back_populates="user", lazy="select")
+    orders: Mapped[list["Order"]] = relationship("Order", foreign_keys="[Order.user_id]", back_populates="user", lazy="select")
     reviews: Mapped[list["Review"]] = relationship("Review", back_populates="user", lazy="select")
     bonus_transactions: Mapped[list["BonusTransaction"]] = relationship("BonusTransaction", back_populates="user", lazy="select")

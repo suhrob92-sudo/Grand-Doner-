@@ -18,9 +18,9 @@ def handle_errors(func):
             # Try to reply to the user
             for arg in args:
                 if isinstance(arg, Message):
-                    await arg.answer("❌ Произошла ошибка. Попробуйте ещё раз.")
+                    await arg.answer("❌ Произошла ошибка. Попробуйте ещё раз.\n❌ Xatolik yuz berdi. Qayta urinib ko'ring.")
                     break
                 if isinstance(arg, CallbackQuery):
-                    await arg.answer("❌ Ошибка", show_alert=True)
+                    await arg.answer("❌ Ошибка / Xatolik", show_alert=True)
                     break
     return wrapper
