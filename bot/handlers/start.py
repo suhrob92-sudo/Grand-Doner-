@@ -13,7 +13,7 @@ from utils.i18n import _
 from utils.helpers import generate_referral_code
 from utils.decorators import handle_errors
 from utils.validators import normalize_phone
-from keyboards.inline import language_inline, main_menu_inline
+from keyboards.inline import language_inline, main_menu_inline, back_to_main_keyboard
 from keyboards.reply import phone_keyboard, main_menu_keyboard, remove_keyboard
 from config import settings
 
