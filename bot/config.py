@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     YOOKASSA_SECRET_KEY: str = ""
     WEBHOOK_URL: str = "https://yourdomain.onrender.com"
     WEBHOOK_PATH: str = "/webhook/bot"
+
+    @field_validator("WEBHOOK_URL", mode="before")
+    @classmethod
+    def strip_trailing_slash(cls, v: str) -> str:
+        return v.rstrip("/")
     WEBHOOK_PORT: int = 8080  # legacy — use PORT instead on Render
 
     # Yandex Taxi

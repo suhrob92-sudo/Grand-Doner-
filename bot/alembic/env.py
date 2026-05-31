@@ -21,6 +21,10 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
+# Pass SSL connect args for asyncpg (Neon requires SSL)
+def get_connect_args():
+    return {"ssl": "require"}
+
 target_metadata = Base.metadata
 
 
@@ -47,6 +51,7 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=get_connect_args(),
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
