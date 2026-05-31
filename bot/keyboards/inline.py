@@ -36,6 +36,7 @@ def categories_keyboard(categories: list, lang: str) -> InlineKeyboardMarkup:
         name = cat.name_uz if lang == "uz" else cat.name_ru
         builder.button(text=f"{cat.emoji} {name}", callback_data=f"cat:{cat.id}")
     builder.adjust(2)
+    builder.row(InlineKeyboardButton(text=_("back_btn", lang), callback_data="goto:main"))
     return builder.as_markup()
 
 
@@ -59,7 +60,7 @@ def products_keyboard(products: list, lang: str, page: int = 0, cat_id: int = 0)
         nav.append(InlineKeyboardButton(text="▶", callback_data=f"prod_page:{cat_id}:{page + 1}"))
     if nav:
         builder.row(*nav)
-    builder.row(InlineKeyboardButton(text="◀ Назад / Orqaga", callback_data="main:catalog"))
+    builder.row(InlineKeyboardButton(text=_("back_btn", lang), callback_data="main:catalog"))
     return builder.as_markup()
 
 
@@ -112,6 +113,7 @@ def order_type_keyboard(lang: str) -> InlineKeyboardMarkup:
     builder.button(text=_("taxi_btn", lang), callback_data="order_type:taxi")
     builder.button(text=_("delivery_btn", lang), callback_data="order_type:delivery")
     builder.adjust(1)
+    builder.row(InlineKeyboardButton(text=_("back_btn", lang), callback_data="main:cart"))
     return builder.as_markup()
 
 
@@ -122,6 +124,7 @@ def pickup_time_keyboard(lang: str) -> InlineKeyboardMarkup:
     builder.button(text=_("pickup_30min", lang), callback_data="pickup_time:30")
     builder.button(text=_("pickup_custom", lang), callback_data="pickup_time:custom")
     builder.adjust(2)
+    builder.row(InlineKeyboardButton(text=_("back_btn", lang), callback_data="cart:checkout"))
     return builder.as_markup()
 
 
@@ -170,6 +173,7 @@ def profile_keyboard(lang: str) -> InlineKeyboardMarkup:
     builder.button(text=_("edit_language_btn", lang), callback_data="profile:language")
     builder.button(text=_("notifications_btn", lang), callback_data="profile:notifications")
     builder.adjust(2)
+    builder.row(InlineKeyboardButton(text=_("back_btn", lang), callback_data="goto:main"))
     return builder.as_markup()
 
 
